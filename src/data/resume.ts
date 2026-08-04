@@ -111,7 +111,7 @@ export const projects = [
     ],
     technologies: ["Next.js", "TypeScript", "Python", "FastAPI", "PostgreSQL", "Qdrant", "OpenAI API"],
     links: { github: 'https://github.com/TOPDEV99999/AI-Knowledge-Management-Platform', live: 'https://tkaxis.com/' },
-    image: '/projects/proj-1.jpg',
+    image: '/projects/proj-1.png',
     highlight: true,
   },
   {
@@ -133,7 +133,7 @@ export const projects = [
     ],
     technologies: ["React", "Node.js", "Python", "PostgreSQL", "Machine Learning"],
     links: { github: 'https://github.com/TOPDEV99999/SmartRecruit-AI', live: 'https://thesmartrecruit.ai/' },
-    image: '/projects/proj-2.jpg',
+    image: '/projects/proj-2.png',
     highlight: false,
   },
   {
@@ -155,7 +155,7 @@ export const projects = [
     ],
     technologies: ["Python", "TensorFlow", "OpenCV", "FastAPI", "React"],
     links: { github: 'https://github.com/TOPDEV99999/ai-healthcare-platform', live: 'http://www.dermaiq.com/' },
-    image: '/projects/proj-3.jpg',
+    image: '/projects/proj-3.png',
     highlight: false,
   },
   {
@@ -177,7 +177,7 @@ export const projects = [
     ],
     technologies: ["Next.js", "TypeScript", "Node.js", "OpenAI API"],
     links: { github: 'https://github.com/TOPDEV99999/AI-codepilot', live: 'https://code-pilot-puce.vercel.app/' },
-    image: '/projects/proj-4.jpg',
+    image: '/projects/proj-4.png',
     highlight: false,
   },
   {
@@ -199,7 +199,7 @@ export const projects = [
     ],
     technologies: ["React", "Node.js", "PostgreSQL", "Stripe", "AI APIs"],
     links: { github: 'https://github.com/TOPDEV99999/ai-ShopMind', live: null },
-    image: '/projects/proj-5.jpg',
+    image: '/projects/proj-5.png',
     highlight: false,
   },
   {
@@ -222,7 +222,7 @@ export const projects = [
     ],
     technologies: ["Python", "PyTorch", "OpenCV", "FastAPI", "React", "TypeScript"],
     links: { github: 'https://github.com/TOPDEV99999/face-swap', live: 'https://face-swap-topdev.netlify.app/' },
-    image: '/projects/proj-6.jpg',
+    image: '/projects/proj-6.png',
     highlight: false,
   },
 ];
