@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "CommonJS",
+    "moduleResolution": "node",
+    "lib": ["ES2020"],
+    "strict": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "outDir": "../../.netlify/functions-serve",
+    "rootDir": "."
+  },
+  "include": ["./**/*.ts", "../../shared/**/*.ts"]
+}

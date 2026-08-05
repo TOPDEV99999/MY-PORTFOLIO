@@ -18,8 +18,8 @@ interface Message {
   followups?: string[];
 }
 
-// ── Intent matcher ──────────────────────────────────────────────────────────
-function novaReply(input: string): { text: string; followups?: string[] } {
+// ── Local fallback — used only when the Netlify Function is unreachable ──────
+function localFallback(input: string): { text: string; followups?: string[] } {
   const lower = input.toLowerCase();
   for (const intent of novaKnowledge.intents as Intent[]) {
     if (intent.patterns.some(p => lower.includes(p))) {
@@ -28,6 +28,8 @@ function novaReply(input: string): { text: string; followups?: string[] } {
   }
   return { text: novaKnowledge.fallback };
 }
+
+const API_URL = '/.netlify/functions/chat';
 
 // ── Rich text renderer ──────────────────────────────────────────────────────
 // Supports: **bold**, `code`, lines starting with → (indent), blank lines = gap
@@ -271,24 +273,68 @@ export default function NovaAI() {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, typing]);
 
-  const send = (text: string) => {
+  const send = async (text: string) => {
     const trimmed = text.trim();
-    if (!trimmed) return;
+    if (!trimmed || typing) return;
     if (!started) setStarted(true);
-    setMessages(prev => [...prev, { id: Date.now().toString(), role: 'user', text: trimmed, ts: new Date() }]);
+
+    // Add user message immediately
+    setMessages(prev => [...prev, {
+      id: Date.now().toString(),
+      role: 'user',
+      text: trimmed,
+      ts: new Date(),
+    }]);
     setInput('');
     setTyping(true);
-    setTimeout(() => {
-      const reply = novaReply(trimmed);
+
+    try {
+      const res = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: trimmed }),
+      });
+
+      if (!res.ok) {
+        // Non-2xx: fall back to local knowledge
+        throw new Error(`HTTP ${res.status}`);
+      }
+
+      const data = await res.json() as { reply?: string; error?: string };
+
+      if (!data.reply) {
+        throw new Error(data.error ?? 'Empty reply from server');
+      }
+
       setMessages(prev => [...prev, {
         id: (Date.now() + 1).toString(),
         role: 'nova',
-        text: reply.text,
+        text: data.reply!,
         ts: new Date(),
-        followups: reply.followups,
+        // Gemini replies don't carry structured followups — leave undefined
       }]);
+    } catch (err) {
+      // ── Graceful degradation ─────────────────────────────────────────────
+      // 1. Try local keyword match first
+      const fallback = localFallback(trimmed);
+      const isGenericFallback = fallback.text === novaKnowledge.fallback;
+
+      const errorNote = isGenericFallback
+        ? `⚠️ Nova is currently offline.\n\nI couldn't reach the AI service${err instanceof Error ? ` (${err.message})` : ''}.\n\nPlease try again shortly, or contact Daniel directly at uhajucewog80@gmail.com.`
+        : `${fallback.text}\n\n*[Answering from local data — AI service temporarily unavailable]*`;
+
+      setMessages(prev => [...prev, {
+        id: (Date.now() + 1).toString(),
+        role: 'nova',
+        text: errorNote,
+        ts: new Date(),
+        followups: isGenericFallback ? undefined : fallback.followups,
+      }]);
+
+      console.warn('Nova API error — used local fallback:', err);
+    } finally {
       setTyping(false);
-    }, 600 + Math.random() * 600);
+    }
   };
 
   const reset = () => { setMessages([]); setInput(''); setStarted(false); setTyping(false); };
