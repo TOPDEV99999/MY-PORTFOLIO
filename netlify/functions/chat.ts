@@ -1,5 +1,5 @@
 import type { Handler } from "@netlify/functions";
-import { GoogleGenAI } from "@google/genai";
+import Groq from "groq-sdk";
 import { buildSystemPrompt } from "../../shared/portfolio-data.js";
 
 const CORS_HEADERS = {
@@ -9,7 +9,7 @@ const CORS_HEADERS = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-// Build once at cold-start — shared/portfolio-data has no side effects
+// Build once at cold-start — no side effects
 const SYSTEM_PROMPT = buildSystemPrompt();
 
 export const handler: Handler = async (event) => {
@@ -28,9 +28,9 @@ export const handler: Handler = async (event) => {
   }
 
   // ── API key guard ──────────────────────────────────────────
-  const apiKey = process.env.GEMINI_API_KEY;
+  const apiKey = process.env.GROQ_API_KEY;
   if (!apiKey) {
-    console.error("GEMINI_API_KEY is not set.");
+    console.error("GROQ_API_KEY is not set.");
     return {
       statusCode: 500,
       headers: CORS_HEADERS,
@@ -58,32 +58,22 @@ export const handler: Handler = async (event) => {
     };
   }
 
-  // ── Call Gemini 2.5 Flash with portfolio context ───────────
+  // ── Call Groq — llama-3.3-70b-versatile ───────────────────
   try {
-    const ai = new GoogleGenAI({ apiKey });
+    const groq = new Groq({ apiKey });
 
-    const result = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: [
-        {
-          // System instruction injected as first user turn so Gemini 2.5 Flash
-          // treats it as grounding context for the entire conversation.
-          role: "user",
-          parts: [{ text: SYSTEM_PROMPT }],
-        },
-        {
-          role: "model",
-          parts: [{ text: "Understood. I'm Nova, Daniel's portfolio assistant. I'll answer all questions based on the information provided. How can I help?" }],
-        },
-        {
-          role: "user",
-          parts: [{ text: userMessage }],
-        },
+    const completion = await groq.chat.completions.create({
+      model: "llama-3.3-70b-versatile",
+      messages: [
+        { role: "system", content: SYSTEM_PROMPT },
+        { role: "user",   content: userMessage   },
       ],
+      temperature: 0.7,
+      max_tokens:  1024,
     });
 
     const reply =
-      result.candidates?.[0]?.content?.parts?.[0]?.text?.trim() ??
+      completion.choices[0]?.message?.content?.trim() ??
       "I couldn't generate a response. Please try again.";
 
     return {
@@ -93,11 +83,11 @@ export const handler: Handler = async (event) => {
     };
   } catch (err) {
     const detail = err instanceof Error ? err.message : String(err);
-    console.error("Gemini API error:", detail);
+    console.error("Groq API error:", detail);
     return {
       statusCode: 502,
       headers: CORS_HEADERS,
-      body: JSON.stringify({ error: `Gemini API error: ${detail}` }),
+      body: JSON.stringify({ error: `Groq API error: ${detail}` }),
     };
   }
 };
