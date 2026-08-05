@@ -65,11 +65,11 @@ export const handler: Handler = async (event) => {
     const completion = await groq.chat.completions.create({
       model: "llama-3.3-70b-versatile",
       messages: [
-        { role: "system", content: SYSTEM_PROMPT },
-        { role: "user",   content: userMessage   },
+        { role: "system",    content: SYSTEM_PROMPT },
+        { role: "user",      content: userMessage   },
       ],
       temperature: 0.7,
-      max_tokens:  1024,
+      max_tokens: 1024,
     });
 
     const reply =
