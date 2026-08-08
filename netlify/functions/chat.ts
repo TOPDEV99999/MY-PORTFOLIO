@@ -23,7 +23,7 @@ export const handler: Handler = async (event) => {
     return {
       statusCode: 405,
       headers: CORS_HEADERS,
-      body: JSON.stringify({ error: "Method not allowed. Use POST." }),
+      body: JSON.stringify({ error: "Method not 2222222222222222. Use POST." }),
     };
   }
 
