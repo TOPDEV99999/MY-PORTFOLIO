@@ -61,6 +61,7 @@ export const handler: Handler = async (event) => {
   // ── Call Gemini 2.5 Flash ──────────────────────────────────
   try {
     const ai = new GoogleGenAI({ apiKey });
+
     
     const result = await ai.models.generateContent({
       model: "gemini-2.0-flash",
