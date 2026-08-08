@@ -62,7 +62,7 @@ export const handler: Handler = async (event) => {
   try {
     const ai = new GoogleGenAI({ apiKey });
     const result = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
+      model: "gemini-2.0-flash",
       // FIX 1: System prompt goes in config.systemInstruction, not as a user turn.
       // This ensures Gemini treats it as grounding context, not user input.
       config: {
