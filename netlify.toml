@@ -4,12 +4,5 @@
   functions = "netlify/functions"
 
 [functions]
-  # Netlify uses esbuild to bundle functions — it resolves ../../shared/ at bundle time
+  # esbuild bundles the function and resolves ../../shared/ at deploy time
   node_bundler = "esbuild"
-
-[[headers]]
-  for = "/.netlify/functions/*"
-  [headers.values]
-    Access-Control-Allow-Origin  = "*"
-    Access-Control-Allow-Headers = "Content-Type"
-    Access-Control-Allow-Methods = "POST, OPTIONS"

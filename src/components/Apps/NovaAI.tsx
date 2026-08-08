@@ -315,8 +315,8 @@ export default function NovaAI() {
       }]);
     } catch (err) {
       // ── Graceful degradation ─────────────────────────────────────────────
-      console.error("Gemini request failed:", err);
-      if (err instanceof Error) console.error(err.message);
+      // FIX 6: Single consolidated error log — no duplicate messages.
+      console.error("Gemini request failed:", err instanceof Error ? err.message : err);
       // 1. Try local keyword match first
       const fallback = localFallback(trimmed);
       const isGenericFallback = fallback.text === novaKnowledge.fallback;
