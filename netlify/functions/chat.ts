@@ -62,22 +62,14 @@ export const handler: Handler = async (event) => {
   try {
     const ai = new GoogleGenAI({ apiKey });
 
-    const result = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: [
-        {
-          role: "user",
-          parts: [{ text: SYSTEM_PROMPT }],
-        },
-        {
-          role: "model",
-          parts: [{ text: "Understood. I'm Nova, Daniel's portfolio assistant. I'll answer all questions based on the information provided. How can I help?" }],
-        },
-        {
-          role: "user",
-          parts: [{ text: userMessage }],
-        },
+    const completion = await groq.chat.completions.create({
+      model: "llama-3.3-70b-versatile",
+      messages: [
+        { role: "system", content: SYSTEM_PROMPT },
+        { role: "user",   content: userMessage   },
       ],
+      temperature: 0.7,
+      max_tokens:  1024,
     });
 
     const reply =
