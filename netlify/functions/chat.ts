@@ -64,7 +64,7 @@ export const handler: Handler = async (event) => {
 
     
     const result = await ai.models.generateContent({
-      model: "gemini-2.0-flash",
+      model: "gemini-2.5-flash-lite-preview-06-17",
       // FIX 1: System prompt goes in config.systemInstruction, not as a user turn.
       // This ensures Gemini treats it as grounding context, not user input.
       config: {
@@ -121,6 +121,39 @@ export const handler: Handler = async (event) => {
   } catch (err) {
     const detail = err instanceof Error ? err.message : String(err);
     console.error("Gemini API error:", detail);
+
+    // ── Specific error handling ────────────────────────────
+    // 429 RESOURCE_EXHAUSTED — free tier quota exceeded
+    if (detail.includes("429") || detail.includes("RESOURCE_EXHAUSTED")) {
+      return {
+        statusCode: 429,
+        headers: CORS_HEADERS,
+        body: JSON.stringify({
+          error: "Nova is temporarily unavailable due to API rate limits. Please try again in a minute.",
+        }),
+      };
+    }
+
+    // 401 / 403 — invalid or missing API key
+    if (detail.includes("401") || detail.includes("403") || detail.includes("API_KEY_INVALID")) {
+      return {
+        statusCode: 401,
+        headers: CORS_HEADERS,
+        body: JSON.stringify({ error: "Invalid or missing Gemini API key." }),
+      };
+    }
+
+    // 404 — model not found / not available on this API project
+    if (detail.includes("404") || detail.includes("NOT_FOUND")) {
+      return {
+        statusCode: 404,
+        headers: CORS_HEADERS,
+        body: JSON.stringify({
+          error: "The requested Gemini model is not available on this API project. Check that your API key has access to the free-tier model.",
+        }),
+      };
+    }
+
     return {
       statusCode: 502,
       headers: CORS_HEADERS,

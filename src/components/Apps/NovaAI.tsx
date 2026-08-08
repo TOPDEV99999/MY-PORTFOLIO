@@ -296,7 +296,16 @@ export default function NovaAI() {
       });
 
       if (!res.ok) {
-        // Non-2xx: fall back to local knowledge
+        // 429 = free tier rate limit hit — show specific message, don't call local fallback
+        if (res.status === 429) {
+          setMessages(prev => [...prev, {
+            id: (Date.now() + 1).toString(),
+            role: 'nova',
+            text: "⏳ Nova is busy right now — free tier rate limit reached.\n\nPlease wait a moment and try again.",
+            ts: new Date(),
+          }]);
+          return;
+        }
         throw new Error(`HTTP ${res.status}`);
       }
 
