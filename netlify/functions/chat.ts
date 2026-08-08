@@ -64,7 +64,7 @@ export const handler: Handler = async (event) => {
 
     
     const result = await ai.models.generateContent({
-      model: "gemini-2.5-flash-lite-preview-06-17",
+      model: "gemini-2.5-flash-lite",
       // FIX 1: System prompt goes in config.systemInstruction, not as a user turn.
       // This ensures Gemini treats it as grounding context, not user input.
       config: {
