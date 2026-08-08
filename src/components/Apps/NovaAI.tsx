@@ -274,7 +274,6 @@ export default function NovaAI() {
   }, [messages, typing]);
 
   const send = async (text: string) => {
-    alert("send is running!");
     const trimmed = text.trim();
     if (!trimmed || typing) return;
     if (!started) setStarted(true);

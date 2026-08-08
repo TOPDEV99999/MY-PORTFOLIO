@@ -1,5 +1,5 @@
 import type { Handler } from "@netlify/functions";
-import Groq from "groq-sdk";
+import { GoogleGenAI } from "@google/genai";
 import { buildSystemPrompt } from "../../shared/portfolio-data.js";
 
 const CORS_HEADERS = {
@@ -23,14 +23,14 @@ export const handler: Handler = async (event) => {
     return {
       statusCode: 405,
       headers: CORS_HEADERS,
-      body: JSON.stringify({ error: "Method not allowed. Use POST." }),
+      body: JSON.stringify({ error: "Method not allowed1111. Use POST." }),
     };
   }
 
   // ── API key guard ──────────────────────────────────────────
-  const apiKey = process.env.GROQ_API_KEY;
+  const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
-    console.error("GROQ_API_KEY is not set.");
+    console.error("GEMINI_API_KEY is not set.");
     return {
       statusCode: 500,
       headers: CORS_HEADERS,
@@ -58,22 +58,30 @@ export const handler: Handler = async (event) => {
     };
   }
 
-  // ── Call Groq — llama-3.3-70b-versatile ───────────────────
+  // ── Call Gemini 2.5 Flash ──────────────────────────────────
   try {
-    const groq = new Groq({ apiKey });
+    const ai = new GoogleGenAI({ apiKey });
 
-    const completion = await groq.chat.completions.create({
-      model: "llama-3.3-70b-versatile",
-      messages: [
-        { role: "system", content: SYSTEM_PROMPT },
-        { role: "user",   content: userMessage   },
+    const result = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: [
+        {
+          role: "user",
+          parts: [{ text: SYSTEM_PROMPT }],
+        },
+        {
+          role: "model",
+          parts: [{ text: "Understood. I'm Nova, Daniel's portfolio assistant. I'll answer all questions based on the information provided. How can I help?" }],
+        },
+        {
+          role: "user",
+          parts: [{ text: userMessage }],
+        },
       ],
-      temperature: 0.7,
-      max_tokens:  1024,
     });
 
     const reply =
-      completion.choices[0]?.message?.content?.trim() ??
+      result.candidates?.[0]?.content?.parts?.[0]?.text?.trim() ??
       "I couldn't generate a response. Please try again.";
 
     return {
@@ -83,11 +91,11 @@ export const handler: Handler = async (event) => {
     };
   } catch (err) {
     const detail = err instanceof Error ? err.message : String(err);
-    console.error("Groq API error:", detail);
+    console.error("Gemini API error:", detail);
     return {
       statusCode: 502,
       headers: CORS_HEADERS,
-      body: JSON.stringify({ error: `Groq API error: ${detail}` }),
+      body: JSON.stringify({ error: `Gemini API error: ${detail}` }),
     };
   }
 };
